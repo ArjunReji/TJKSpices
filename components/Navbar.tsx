@@ -10,7 +10,7 @@ export default function Navbar() {
         {/* Left side logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/tjk-logo.png"
+            src="/favicon-removebg.png"
             alt="TJK Spices Logo"
             width={40}
             height={40}

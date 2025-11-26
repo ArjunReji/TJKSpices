@@ -35,7 +35,7 @@ export default function GalleryPage() {
             <div className="hidden sm:block">
               <div className="relative w-20 h-20 rounded-2xl bg-white border border-emerald-100 shadow-sm flex items-center justify-center">
                 <Image
-                  src="/tjk-logo.png"
+                  src="/favicon-removebg.png"
                   alt="TJK Spices Logo"
                   fill
                   className="object-contain p-2"
