@@ -767,215 +767,219 @@ export default function PriceListAdmin() {
           </header>
 
           {/* price list - centered like public */}
-          <section>
-            {/* desktop/tablet table */}
-            <div className="hidden md:block">
-              <div className="mx-auto max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-100/80">
-                    <tr>
-                      {session?.user?.email && (
-                        <th className="px-3 py-3 text-center text-sm font-semibold text-slate-800">
+          {session?.user?.email && (
+            <section>
+              {/* desktop/tablet table */}
+              <div className="hidden md:block">
+                <div className="mx-auto max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-100/80">
+                      <tr>
+                        {session?.user?.email && (
+                          <th className="px-3 py-3 text-center text-sm font-semibold text-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={allSelected}
+                              onChange={toggleSelectAll}
+                            />
+                          </th>
+                        )}
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-800">
+                          Variety / Grade
+                        </th>
+                        {session?.user?.email && (
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-800">
+                            SKU
+                          </th>
+                        )}
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-slate-800">
+                          Price ({currency})
+                        </th>
+                        {session?.user?.email && (
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
+                            Edit
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td
+                            colSpan={session?.user?.email ? 5 : 2}
+                            className="p-6 text-center text-slate-600 text-sm"
+                          >
+                            Loading prices…
+                          </td>
+                        </tr>
+                      ) : products.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={session?.user?.email ? 5 : 2}
+                            className="p-6 text-center text-slate-600 text-sm"
+                          >
+                            No varieties found.
+                          </td>
+                        </tr>
+                      ) : (
+                        products.map((p) => (
+                          <tr
+                            key={p.id}
+                            className="border-t last:border-b hover:bg-slate-100/80"
+                          >
+                            {session?.user?.email && (
+                              <td className="px-3 py-3 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.includes(p.id)}
+                                  onChange={() => toggleSelect(p.id)}
+                                />
+                              </td>
+                            )}
+                            <td className="px-4 py-3 text-base font-semibold text-slate-900">
+                              {p.name}
+                            </td>
+                            {session?.user?.email && (
+                              <td className="px-4 py-3 text-xs text-slate-700">
+                                {p.sku}
+                              </td>
+                            )}
+                            <td className="px-4 py-3 text-right text-lg font-extrabold text-slate-900">
+                              {currency === "INR"
+                                ? `₹${p.priceINR}`
+                                : `${currency} ${convert(p.priceINR)}`}
+                            </td>
+                            {session?.user?.email && (
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => openEdit(p)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-xs sm:text-sm shadow"
+                                >
+                                  Edit
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* mobile cards */}
+              <div className="md:hidden space-y-3 max-w-md mx-auto">
+                {loading ? (
+                  <div className="p-4 bg-white border border-slate-200 rounded-md text-center text-slate-600 text-sm">
+                    Loading prices…
+                  </div>
+                ) : products.length === 0 ? (
+                  <div className="p-4 bg-white border border-slate-200 rounded-md text-center text-slate-600 text-sm">
+                    No varieties found.
+                  </div>
+                ) : (
+                  products.map((p) => (
+                    <article
+                      key={p.id}
+                      className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start justify-between gap-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        {session?.user?.email && (
                           <input
                             type="checkbox"
-                            checked={allSelected}
-                            onChange={toggleSelectAll}
+                            className="mt-1"
+                            checked={selectedIds.includes(p.id)}
+                            onChange={() => toggleSelect(p.id)}
                           />
-                        </th>
-                      )}
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-800">
-                        Variety / Grade
-                      </th>
-                      {session?.user?.email && (
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-800">
-                          SKU
-                        </th>
-                      )}
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-800">
-                        Price ({currency})
-                      </th>
-                      {session?.user?.email && (
-                        <th className="px-4 py-3 text-center text-sm font-semibold text-slate-800">
-                          Edit
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td
-                          colSpan={session?.user?.email ? 5 : 2}
-                          className="p-6 text-center text-slate-600 text-sm"
-                        >
-                          Loading prices…
-                        </td>
-                      </tr>
-                    ) : products.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={session?.user?.email ? 5 : 2}
-                          className="p-6 text-center text-slate-600 text-sm"
-                        >
-                          No varieties found.
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map((p) => (
-                        <tr
-                          key={p.id}
-                          className="border-t last:border-b hover:bg-slate-100/80"
-                        >
-                          {session?.user?.email && (
-                            <td className="px-3 py-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedIds.includes(p.id)}
-                                onChange={() => toggleSelect(p.id)}
-                              />
-                            </td>
-                          )}
-                          <td className="px-4 py-3 text-base font-semibold text-slate-900">
+                        )}
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-900">
                             {p.name}
-                          </td>
+                          </h3>
                           {session?.user?.email && (
-                            <td className="px-4 py-3 text-xs text-slate-700">
+                            <div className="text-[11px] text-slate-600 mt-1">
                               {p.sku}
-                            </td>
+                            </div>
                           )}
-                          <td className="px-4 py-3 text-right text-lg font-extrabold text-slate-900">
-                            {currency === "INR"
-                              ? `₹${p.priceINR}`
-                              : `${currency} ${convert(p.priceINR)}`}
-                          </td>
-                          {session?.user?.email && (
-                            <td className="px-4 py-3 text-center">
-                              <button
-                                onClick={() => openEdit(p)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-xs sm:text-sm shadow"
-                              >
-                                Edit
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* mobile cards */}
-            <div className="md:hidden space-y-3 max-w-md mx-auto">
-              {loading ? (
-                <div className="p-4 bg-white border border-slate-200 rounded-md text-center text-slate-600 text-sm">
-                  Loading prices…
-                </div>
-              ) : products.length === 0 ? (
-                <div className="p-4 bg-white border border-slate-200 rounded-md text-center text-slate-600 text-sm">
-                  No varieties found.
-                </div>
-              ) : (
-                products.map((p) => (
-                  <article
-                    key={p.id}
-                    className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start justify-between gap-3"
-                  >
-                    <div className="flex items-start gap-2">
-                      {session?.user?.email && (
-                        <input
-                          type="checkbox"
-                          className="mt-1"
-                          checked={selectedIds.includes(p.id)}
-                          onChange={() => toggleSelect(p.id)}
-                        />
-                      )}
-                      <div>
-                        <h3 className="text-sm font-semibold text-slate-900">
-                          {p.name}
-                        </h3>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-bold text-slate-900">
+                          {currency === "INR"
+                            ? `₹${p.priceINR}`
+                            : `${currency} ${convert(p.priceINR)}`}
+                        </div>
                         {session?.user?.email && (
-                          <div className="text-[11px] text-slate-600 mt-1">
-                            {p.sku}
-                          </div>
+                          <button
+                            onClick={() => openEdit(p)}
+                            className="mt-2 w-full inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-xs shadow"
+                          >
+                            Edit
+                          </button>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-base font-bold text-slate-900">
-                        {currency === "INR"
-                          ? `₹${p.priceINR}`
-                          : `${currency} ${convert(p.priceINR)}`}
-                      </div>
-                      {session?.user?.email && (
-                        <button
-                          onClick={() => openEdit(p)}
-                          className="mt-2 w-full inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 text-xs shadow"
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-          </section>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+          )}
 
           {/* price change history */}
-          <section className="mt-8">
-            <div className="mx-auto max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-slate-900">
-                  Recent price changes
-                </h2>
-                <button
-                  onClick={fetchHistory}
-                  className="text-xs text-slate-600 hover:underline"
-                >
-                  Refresh
-                </button>
+          {session?.user?.email && (
+            <section className="mt-8">
+              <div className="mx-auto max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Recent price changes
+                  </h2>
+                  <button
+                    onClick={fetchHistory}
+                    className="text-xs text-slate-600 hover:underline"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {historyLoading ? (
+                  <div className="text-sm text-slate-700">
+                    Loading history…
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-sm text-slate-700">
+                    No recent changes.
+                  </div>
+                ) : (
+                  <ul className="space-y-2 max-h-56 overflow-auto text-sm">
+                    {history.map((h) => (
+                      <li
+                        key={h.id}
+                        className="border-b last:border-b-0 pb-2 last:pb-0"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-slate-900">
+                              {h.product_name ?? "Product"}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              {h.changed_by} • {fmtDate(h.changed_at)}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-slate-900">
+                              ₹{h.new_price}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              was ₹{h.old_price}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              {historyLoading ? (
-                <div className="text-sm text-slate-700">
-                  Loading history…
-                </div>
-              ) : history.length === 0 ? (
-                <div className="text-sm text-slate-700">
-                  No recent changes.
-                </div>
-              ) : (
-                <ul className="space-y-2 max-h-56 overflow-auto text-sm">
-                  {history.map((h) => (
-                    <li
-                      key={h.id}
-                      className="border-b last:border-b-0 pb-2 last:pb-0"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-900">
-                            {h.product_name ?? "Product"}
-                          </div>
-                          <div className="text-xs text-slate-600">
-                            {h.changed_by} • {fmtDate(h.changed_at)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-slate-900">
-                            ₹{h.new_price}
-                          </div>
-                          <div className="text-xs text-slate-600">
-                            was ₹{h.old_price}
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Spices Board auction data table (admin only) */}
           {session?.user?.email && (
