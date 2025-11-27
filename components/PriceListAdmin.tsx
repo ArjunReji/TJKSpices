@@ -8,6 +8,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import FocusTrap from "focus-trap-react";
 import AuctionAvgPriceChart from "@/components/AuctionAvgPriceChart";
 
+type LiveStatus = {
+  live: boolean;
+  videoId?: string | null;
+  title?: string | null;
+};
+
 type Product = { id: string; name: string; sku: string; priceINR: number };
 
 type PriceChange = {
@@ -64,6 +70,12 @@ const CARD_THEMES = [
 ];
 
 export default function PriceListAdmin() {
+  const [puttadyLive, setPuttadyLive] = useState<LiveStatus | null>(null);
+  const [bodiLive, setBodiLive] = useState<LiveStatus | null>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -108,6 +120,7 @@ export default function PriceListAdmin() {
 
 
   useEffect(() => {
+    fetchLiveAuctions();
     // 🔥 Set default date range = last 1 month
     const now = new Date();
     const oneMonthAgo = new Date();
@@ -135,6 +148,35 @@ export default function PriceListAdmin() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  async function fetchLiveAuctions() {
+    setLiveLoading(true);
+    setLiveError(null);
+    try {
+      const [puttRes, bodiRes] = await Promise.all([
+        fetch("/api/youtube-live?channel=puttady"),
+        fetch("/api/youtube-live?channel=bodi"),
+      ]);
+
+      const puttJson = await puttRes.json();
+      const bodiJson = await bodiRes.json();
+
+      if (!puttRes.ok) {
+        throw new Error(puttJson.error || "Failed to load Puttady live status");
+      }
+      if (!bodiRes.ok) {
+        throw new Error(bodiJson.error || "Failed to load Bodi live status");
+      }
+
+      setPuttadyLive(puttJson);
+      setBodiLive(bodiJson);
+    } catch (err: any) {
+      console.error(err);
+      setLiveError(err.message || "Failed to load live auctions");
+    } finally {
+      setLiveLoading(false);
+    }
+  }
 
   async function fetchProducts() {
     setLoading(true);
@@ -980,6 +1022,125 @@ export default function PriceListAdmin() {
               </div>
             </section>
           )}
+
+          {/* Live auction streams – admin only */}
+          {session?.user?.email && (
+            <section className="mt-8">
+              <div className="mx-auto bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="text-base md:text-lg font-semibold text-slate-900">
+                      Live Auction Streams
+                    </h2>
+                    <p className="text-[11px] md:text-xs text-slate-600">
+                      Watch live small cardamom auctions from Spices Board centres when
+                      streaming is active.
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchLiveAuctions}
+                    className="text-xs md:text-sm text-emerald-700 hover:underline font-medium"
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                {liveLoading && (
+                  <div className="text-sm text-slate-700 mb-3">
+                    Checking live auction status…
+                  </div>
+                )}
+                {liveError && (
+                  <div className="text-sm text-red-600 mb-3">
+                    {liveError}
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* Puttady */}
+                  <div className="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                    <div className="px-3 py-2 border-b border-slate-200 bg-slate-100 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800 uppercase tracking-wide">
+                          Channel 1 – Puttady
+                        </p>
+                        <p className="text-[11px] text-slate-600">
+                          Spices Board Auction Centre, Puttady
+                        </p>
+                      </div>
+                      {puttadyLive?.live ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600 text-[10px] font-semibold text-white">
+                          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          Live
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-300 text-[10px] font-semibold text-slate-700">
+                          Offline
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="aspect-video bg-black flex items-center justify-center text-xs text-slate-100">
+                      {puttadyLive?.live && puttadyLive.videoId ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${puttadyLive.videoId}?autoplay=1`}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          title={puttadyLive.title || "Puttady live auction"}
+                        />
+                      ) : (
+                        <span className="px-4 text-center text-[12px] md:text-sm">
+                          Auction closed for the day
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bodi */}
+                  <div className="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                    <div className="px-3 py-2 border-b border-slate-200 bg-slate-100 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800 uppercase tracking-wide">
+                          Channel 2 – Bodi
+                        </p>
+                        <p className="text-[11px] text-slate-600">
+                          Spices Board (Bodi) – Marketing
+                        </p>
+                      </div>
+                      {bodiLive?.live ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600 text-[10px] font-semibold text-white">
+                          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                          Live
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-300 text-[10px] font-semibold text-slate-700">
+                          Offline
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="aspect-video bg-black flex items-center justify-center text-xs text-slate-100">
+                      {bodiLive?.live && bodiLive.videoId ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${bodiLive.videoId}?autoplay=1`}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          title={bodiLive.title || "Bodi live auction"}
+                        />
+                      ) : (
+                        <span className="px-4 text-center text-[12px] md:text-sm">
+                          Auction closed for the day
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
 
           {/* Spices Board auction data table (admin only) */}
           {session?.user?.email && (
